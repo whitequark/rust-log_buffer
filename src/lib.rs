@@ -155,7 +155,7 @@ impl<T: AsMut<[u8]>> LogBuffer<T> {
 
         let buffer = self.buffer.as_mut();
         for i in 0..buffer.len() {
-            if i > 0 && buffer[i - 1] == 0x0a {
+            if i > 0 && buffer[i - 1] == b'\n' {
                 let slice = core::str::from_utf8(&buffer[i..]).unwrap();
                 return slice.lines()
             }
