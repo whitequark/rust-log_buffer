@@ -16,7 +16,7 @@ To use the _log_buffer_ library in your project, add the following to `Cargo.tom
 
 ```toml
 [dependencies]
-log_buffer = "0.1"
+log_buffer = "1.0"
 ```
 
 Usage example
