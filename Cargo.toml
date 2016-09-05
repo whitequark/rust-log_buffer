@@ -1,0 +1,4 @@
+[package]
+name = "log_buffer"
+version = "0.1.0"
+authors = ["whitequark <whitequark@whitequark.org>"]
