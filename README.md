@@ -8,6 +8,18 @@ See the [documentation][doc] for details.
 
 [doc]: https://whitequark.github.io/rust-log_buffer/log_buffer/
 
+Usage
+-----
+
+To use the _log_buffer_ library in your project, add the following to `Cargo.toml`:
+
+```toml
+[dependencies]
+log_buffer = "0.1"
+```
+
+See the [documentation][doc] for examples.
+
 License
 -------
 
