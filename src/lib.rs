@@ -1,39 +1,62 @@
 //! log_buffer provides a way to record and extract logs without allocation.
-//! It achieves this by utilizing a ring buffer, similar to a *nix _dmesg_ facility.
+//! The [LogBuffer](struct.LogBuffer.html) achieves this by providing a ring buffer,
+//! similar to a *nix _dmesg_ facility.
 //!
 //! # Usage example
 //!
 //! ```
-//! use log_buffer::LogBuffer;
 //! use std::fmt::Write;
 //!
-//! let mut log_storage = [0; 16];
-//! let mut log_buffer  = LogBuffer::new(&mut log_storage);
-//! write!(log_buffer, "\nfirst\n").unwrap();
-//! write!(log_buffer, "second\n").unwrap();
-//! write!(log_buffer, "third\n").unwrap();
+//! let mut dmesg = log_buffer::LogBuffer::new([0; 16]);
+//! write!(dmesg, "\nfirst\n").unwrap();
+//! write!(dmesg, "second\n").unwrap();
+//! write!(dmesg, "third\n").unwrap();
 //!
-//! assert_eq!(log_buffer.extract(),
+//! assert_eq!(dmesg.extract(),
 //!            "st\nsecond\nthird\n");
-//! assert_eq!(log_buffer.extract_lines().collect::<Vec<_>>(),
+//! assert_eq!(dmesg.extract_lines().collect::<Vec<_>>(),
 //!            vec!["second", "third"]);
+//! ```
+//!
+//! # Choices of backing storage
+//!
+//! Backed by an array:
+//!
+//! ```
+//! let mut dmesg = log_buffer::LogBuffer::new([0; 16]);
+//! ```
+//!
+//! Backed by a mutable slice:
+//!
+//! ```
+//! let mut storage = [0; 16];
+//! let mut dmesg = log_buffer::LogBuffer::new(&mut storage);
+//! ```
+//!
+//! Backed by a vector:
+//!
+//! ```
+//! let mut dmesg = log_buffer::LogBuffer::new(vec![0; 16]);
 //! ```
 
 #![no_std]
 
 /// A ring buffer that stores UTF-8 text.
+///
+/// Anything that implements `AsMut<[u8]>` can be used for backing storage;
+/// e.g. `[u8; N]`, `Vec<[u8]>`, `Box<[u8]>`.
 #[derive(Debug)]
-pub struct LogBuffer<'a> {
-    buffer:   &'a mut [u8],
+pub struct LogBuffer<T: AsMut<[u8]>> {
+    buffer:   T,
     position: usize
 }
 
-impl<'a> LogBuffer<'a> {
+impl<T: AsMut<[u8]>> LogBuffer<T> {
     /// Creates a new ring buffer, backed by the slice `storage`.
     ///
     /// The buffer is cleared after creation.
-    pub fn new(storage: &'a mut [u8]) -> LogBuffer<'a> {
-        let mut buffer = LogBuffer { buffer: { storage }, position: 0 };
+    pub fn new(storage: T) -> LogBuffer<T> {
+        let mut buffer = LogBuffer { buffer: storage, position: 0 };
         buffer.clear();
         buffer
     }
@@ -45,7 +68,7 @@ impl<'a> LogBuffer<'a> {
     /// This function takes O(n) time where n is buffer length.
     pub fn clear(&mut self) {
         self.position = 0;
-        for b in self.buffer.iter_mut() {
+        for b in self.buffer.as_mut().iter_mut() {
             // Any non-leading UTF-8 code unit would do, but 0xff looks like an obvious sentinel.
             // Can't be 0x00 since that is a valid codepoint.
             *b = 0xff;
@@ -70,22 +93,23 @@ impl<'a> LogBuffer<'a> {
             a
         }
 
-        for i in 0..gcd(self.buffer.len(), rotate_by) {
+        let buffer = self.buffer.as_mut();
+        for i in 0..gcd(buffer.len(), rotate_by) {
           // move i-th values of blocks
-          let temp = self.buffer[i];
+          let temp = buffer[i];
           let mut j = i;
           loop {
             let mut k = j + rotate_by;
-            if k >= self.buffer.len() {
-                k = k - self.buffer.len()
+            if k >= buffer.len() {
+                k = k - buffer.len()
             }
             if k == i {
                 break
             }
-            self.buffer[j] = self.buffer[k];
+            buffer[j] = buffer[k];
             j = k;
           }
-          self.buffer[j] = temp
+          buffer[j] = temp
         }
     }
 
@@ -107,9 +131,10 @@ impl<'a> LogBuffer<'a> {
             byte & 0b11111000 == 0b11110000
         }
 
-        for i in 0..self.buffer.len() {
-            if is_utf8_leader(self.buffer[i]) {
-                return core::str::from_utf8(&self.buffer[i..]).unwrap()
+        let buffer = self.buffer.as_mut();
+        for i in 0..buffer.len() {
+            if is_utf8_leader(buffer[i]) {
+                return core::str::from_utf8(&buffer[i..]).unwrap()
             }
         }
         return ""
@@ -128,9 +153,10 @@ impl<'a> LogBuffer<'a> {
     pub fn extract_lines<'b>(&'b mut self) -> core::str::Lines<'b> {
         self.rotate();
 
-        for i in 0..self.buffer.len() {
-            if i > 0 && self.buffer[i - 1] == 0x0a {
-                let slice = core::str::from_utf8(&self.buffer[i..]).unwrap();
+        let buffer = self.buffer.as_mut();
+        for i in 0..buffer.len() {
+            if i > 0 && buffer[i - 1] == 0x0a {
+                let slice = core::str::from_utf8(&buffer[i..]).unwrap();
                 return slice.lines()
             }
         }
@@ -138,14 +164,14 @@ impl<'a> LogBuffer<'a> {
     }
 }
 
-impl<'a> core::fmt::Write for LogBuffer<'a> {
+impl<T: AsMut<[u8]>> core::fmt::Write for LogBuffer<T> {
     /// Append `s` to the ring buffer.
     ///
     /// This function takes O(n) time where n is length of `s`.
     fn write_str(&mut self, s: &str) -> core::fmt::Result {
         for &b in s.as_bytes() {
-            self.buffer[self.position] = b;
-            self.position = (self.position + 1) % self.buffer.len()
+            self.buffer.as_mut()[self.position] = b;
+            self.position = (self.position + 1) % self.buffer.as_mut().len()
         }
         Ok(())
     }

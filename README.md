@@ -2,14 +2,15 @@ log_buffer
 ==========
 
 _log_buffer_ is a Rust crate implementing a zero-allocation ring buffer
-for storing text logs. It does not depend on `std`.
+for storing text logs. It does not depend on `std`, but can be used
+with `std::vec::Vec` if desired.
 
 See the [documentation][doc] for details.
 
 [doc]: https://whitequark.github.io/rust-log_buffer/log_buffer/
 
-Usage
------
+Installation
+------------
 
 To use the _log_buffer_ library in your project, add the following to `Cargo.toml`:
 
@@ -18,7 +19,24 @@ To use the _log_buffer_ library in your project, add the following to `Cargo.tom
 log_buffer = "0.1"
 ```
 
-See the [documentation][doc] for examples.
+Usage example
+-------------
+
+```rust
+use core::fmt::Write;
+
+let mut dmesg = log_buffer::LogBuffer::new([0; 16]);
+write!(dmesg, "\nfirst\n").unwrap();
+write!(dmesg, "second\n").unwrap();
+write!(dmesg, "third\n").unwrap();
+
+assert_eq!(dmesg.extract(),
+           "st\nsecond\nthird\n");
+assert_eq!(dmesg.extract_lines().collect::<Vec<_>>(),
+           vec!["second", "third"]);
+```
+
+See the [documentation][doc] for more examples.
 
 License
 -------
