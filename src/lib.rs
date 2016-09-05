@@ -114,7 +114,7 @@ impl<T: AsMut<[u8]>> LogBuffer<T> {
     }
 
     /// Extracts the contents of the ring buffer as a string slice, excluding any
-    /// partially overwritten UTF-8 codepoints at the beginning.
+    /// partially overwritten UTF-8 code unit sequences at the beginning.
     ///
     /// Extraction rotates the contents of the ring buffer such that all of its
     /// contents becomes contiguous in memory.

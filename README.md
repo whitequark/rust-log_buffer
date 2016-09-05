@@ -3,7 +3,8 @@ log_buffer
 
 _log_buffer_ is a Rust crate implementing a zero-allocation ring buffer
 for storing text logs. It does not depend on `std`, but can be used
-with `std::vec::Vec` if desired.
+with `std::vec::Vec` if desired. It does not depend on anything else
+either.
 
 See the [documentation][doc] for details.
 
