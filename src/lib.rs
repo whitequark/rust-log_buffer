@@ -40,6 +40,7 @@
 //! ```
 
 #![no_std]
+#![feature(const_fn)]
 
 /// A ring buffer that stores UTF-8 text.
 ///
@@ -55,10 +56,11 @@ impl<T: AsMut<[u8]>> LogBuffer<T> {
     /// Creates a new ring buffer, backed by the slice `storage`.
     ///
     /// The buffer is cleared after creation.
-    pub fn new(storage: T) -> LogBuffer<T> {
-        let mut buffer = LogBuffer { buffer: storage, position: 0 };
-        buffer.clear();
-        buffer
+    pub const fn new(storage: T) -> LogBuffer<T> {
+        LogBuffer { buffer: storage, position: 0 }
+        // let mut buffer = LogBuffer { buffer: storage, position: 0 };
+        // buffer.clear();
+        // buffer
     }
 
     /// Clears the buffer.

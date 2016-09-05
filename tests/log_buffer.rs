@@ -1,7 +1,12 @@
+#![feature(const_fn)]
+
 extern crate log_buffer;
 
 use std::fmt::Write;
 use log_buffer::LogBuffer;
+
+static mut global_storage: [u8; 40] = [0; 40];
+static mut global_buffer: LogBuffer<&'static mut [u8]> = LogBuffer::new(unsafe { &mut x });
 
 #[test]
 fn basic() {
