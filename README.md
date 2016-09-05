@@ -4,7 +4,9 @@ log_buffer
 _log_buffer_ is a Rust crate implementing a zero-allocation ring buffer
 for storing text logs. It does not depend on `std`.
 
-See also the [documentation](https://whitequark.github.io/rust-log_buffer).
+See the [documentation][doc] for details.
+
+[doc]: https://whitequark.github.io/rust-log_buffer/log_buffer/
 
 License
 -------
