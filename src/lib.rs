@@ -1,6 +1,6 @@
-//! log_buffer provides a way to record and extract logs without allocation.
-//! The [LogBuffer](struct.LogBuffer.html) achieves this by providing a ring buffer,
-//! similar to a *nix _dmesg_ facility.
+//! `log_buffer` provides a way to record and extract logs without allocation.
+//! The [LogBuffer](struct.LogBuffer.html) achieves this by providing a ring
+//! buffer, similar to a *nix _dmesg_ facility.
 //!
 //! # Usage example
 //!
@@ -101,7 +101,7 @@ impl<T: AsMut<[u8]>> LogBuffer<T> {
           loop {
             let mut k = j + rotate_by;
             if k >= buffer.len() {
-                k = k - buffer.len()
+                k -= buffer.len()
             }
             if k == i {
                 break
@@ -131,13 +131,9 @@ impl<T: AsMut<[u8]>> LogBuffer<T> {
             byte & 0b11111000 == 0b11110000
         }
 
-        let buffer = self.buffer.as_mut();
-        for i in 0..buffer.len() {
-            if is_utf8_leader(buffer[i]) {
-                return core::str::from_utf8(&buffer[i..]).unwrap()
-            }
-        }
-        return ""
+        let buffer = &*self.buffer.as_mut();
+        buffer.iter().cloned().position(is_utf8_leader).map_or("", |i|
+            core::str::from_utf8(&buffer[i..]).unwrap())
     }
 
     /// Extracts the contents of the ring buffer as an iterator over its lines,
@@ -150,17 +146,12 @@ impl<T: AsMut<[u8]>> LogBuffer<T> {
     /// contents becomes contiguous in memory.
     ///
     /// This function takes O(n) time where n is buffer length.
-    pub fn extract_lines<'b>(&'b mut self) -> core::str::Lines<'b> {
+    pub fn extract_lines(&mut self) -> core::str::Lines {
         self.rotate();
 
-        let buffer = self.buffer.as_mut();
-        for i in 0..buffer.len() {
-            if i > 0 && buffer[i - 1] == b'\n' {
-                let slice = core::str::from_utf8(&buffer[i..]).unwrap();
-                return slice.lines()
-            }
-        }
-        return "".lines()
+        let buffer = &*self.buffer.as_mut();
+        buffer.iter().cloned().position(|i| i == b'\n').map_or("", |i|
+            core::str::from_utf8(&buffer[i + 1..]).unwrap()).lines()
     }
 }
 
