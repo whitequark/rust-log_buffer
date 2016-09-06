@@ -1,6 +1,6 @@
-//! log_buffer provides a way to record and extract logs without allocation.
-//! The [LogBuffer](struct.LogBuffer.html) achieves this by providing a ring buffer,
-//! similar to a *nix _dmesg_ facility.
+//! `log_buffer` provides a way to record and extract logs without allocation.
+//! The [LogBuffer](struct.LogBuffer.html) achieves this by providing a ring
+//! buffer, similar to a *nix _dmesg_ facility.
 //!
 //! # Usage example
 //!
@@ -101,7 +101,7 @@ impl<T: AsMut<[u8]>> LogBuffer<T> {
           loop {
             let mut k = j + rotate_by;
             if k >= buffer.len() {
-                k = k - buffer.len()
+                k -= buffer.len()
             }
             if k == i {
                 break
@@ -150,7 +150,7 @@ impl<T: AsMut<[u8]>> LogBuffer<T> {
     /// contents becomes contiguous in memory.
     ///
     /// This function takes O(n) time where n is buffer length.
-    pub fn extract_lines<'b>(&'b mut self) -> core::str::Lines<'b> {
+    pub fn extract_lines(&mut self) -> core::str::Lines {
         self.rotate();
 
         let buffer = self.buffer.as_mut();
