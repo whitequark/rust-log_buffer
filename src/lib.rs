@@ -40,6 +40,7 @@
 //! ```
 
 #![no_std]
+#![cfg_attr(feature = "const_fn", feature(const_fn))]
 
 /// A ring buffer that stores UTF-8 text.
 ///
@@ -52,13 +53,23 @@ pub struct LogBuffer<T: AsMut<[u8]>> {
 }
 
 impl<T: AsMut<[u8]>> LogBuffer<T> {
-    /// Creates a new ring buffer, backed by the slice `storage`.
+    /// Creates a new ring buffer, backed by `storage`.
     ///
     /// The buffer is cleared after creation.
     pub fn new(storage: T) -> LogBuffer<T> {
         let mut buffer = LogBuffer { buffer: storage, position: 0 };
         buffer.clear();
         buffer
+    }
+
+    /// Creates a new ring buffer, backed by `storage`.
+    ///
+    /// The buffer is *not* cleared after creation, and contains whatever is in `storage`.
+    /// The `clear()` method should be called before use.
+    /// However, this function can be used in a static initializer.
+    #[cfg(feature = "const_fn")]
+    pub const fn uninitialized(storage: T) -> LogBuffer<T> {
+        LogBuffer { buffer: storage, position: 0 }
     }
 
     /// Clears the buffer.

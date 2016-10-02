@@ -1,13 +1,13 @@
 sudo: required
 language: rust
 rust:
-  - stable
+  - nightly
 env:
   - secure: "TLRXkqd76FJwSAFOD8kZbieRzWpq6+RA/WrbqLGt9RRL3l65TUEwyDxYoUy5Jscj4bY5XsNPE6CfWggp2SMDcV1C/FNf4nVDTPieCwRluKVHDKpIcoloSVTKihyd6W0P0z9vWNHT7/eYPW+rL8ty2pbFeFJDFJXb1WSIdNcdZvtNHOk8HNKIA/Wiha8/8sHN0EA+EVOIJ3FPYxyQ1NVEYfdQb227LE0UOyTBxU7jke2e/st6GiUl0IPqZy0H38qP5pHismyqsbzlNMsEQqFZrwXE1Zvx3928sD5PBoBfYPsLS3AOz7/nWi/txI3tUm1nlxVzSRF3ZNT5pBmAJof1pBe6+is6C2bxhgTwoTDJBfc2I7fy60dPg3fl9DJWLROBwAaf5Ww2tzuwf0YM3CMSTdI01Y6/RL2n/JBg1h/jRLjZaiqi2rANvBG7iMStVeebJtXkGI0pUpNxTSLBYXBgU+YHwd3rSTXVC4q7Z45q4lsBJohTAWwV29ohz3a97yP+tCfl4KD2QXorV75Vk8A6pl38j1e35xSdWRy3tJp7LFoBqp1g9mz+v+PjZ+8CZ2alPbdp1X5O6Rc6xl1aK76Aw6b/Rz9QGiatEh22FP6EZtMoXhr6oXX+c1B+yqVHrHnPaCUVRfxk2ieg050U5AolXHA9/mxyBbFxzE0wLE3LDe4="
 after_script:
   - |
     if [ "${TRAVIS_BRANCH}" = "master" -a -n "${GH_TOKEN}" ]; then
-      cargo doc
+      cargo doc --features=const_fn
       git clone https://github.com/davisp/ghp-import
       ./ghp-import/ghp_import.py -n target/doc
       git push -fq https://${GH_TOKEN}@github.com/${TRAVIS_REPO_SLUG}.git gh-pages
