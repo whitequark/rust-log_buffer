@@ -8,16 +8,25 @@ fn basic() {
     let mut storage = [0; 16];
     let mut buffer = LogBuffer::new(&mut storage);
 
+    assert_eq!(buffer.is_empty(), true);
     assert_eq!(buffer.extract(), "");
+    assert_eq!(buffer.is_empty(), true);
 
     write!(buffer, "foo").unwrap();
+    assert_eq!(buffer.is_empty(), false);
     assert_eq!(buffer.extract(), "foo");
+    assert_eq!(buffer.is_empty(), false);
 
     write!(buffer, "bar").unwrap();
     assert_eq!(buffer.extract(), "foobar");
 
     write!(buffer, "verylongthing").unwrap();
+    assert_eq!(buffer.is_empty(), false);
     assert_eq!(buffer.extract(), "barverylongthing");
+    assert_eq!(buffer.is_empty(), false);
+
+    buffer.clear();
+    assert_eq!(buffer.is_empty(), true);
 }
 
 #[test]

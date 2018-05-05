@@ -47,12 +47,12 @@
 /// Anything that implements `AsMut<[u8]>` can be used for backing storage;
 /// e.g. `[u8; N]`, `Vec<[u8]>`, `Box<[u8]>`.
 #[derive(Debug)]
-pub struct LogBuffer<T: AsMut<[u8]>> {
+pub struct LogBuffer<T: AsRef<[u8]> + AsMut<[u8]>> {
     buffer:   T,
     position: usize
 }
 
-impl<T: AsMut<[u8]>> LogBuffer<T> {
+impl<T: AsRef<[u8]> + AsMut<[u8]>> LogBuffer<T> {
     /// Creates a new ring buffer, backed by `storage`.
     ///
     /// The buffer is cleared after creation.
@@ -84,6 +84,15 @@ impl<T: AsMut<[u8]>> LogBuffer<T> {
             // Can't be 0x00 since that is a valid codepoint.
             *b = 0xff;
         }
+    }
+
+    /// Checks whether the ring buffer is empty.
+    ///
+    /// This function takes O(1) time.
+    pub fn is_empty(&self) -> bool {
+        let buffer = self.buffer.as_ref();
+        self.position == 0 &&
+            (buffer.len() == 0 || buffer[buffer.len() - 1] == 0xff)
     }
 
     fn rotate(&mut self) {
@@ -142,7 +151,7 @@ impl<T: AsMut<[u8]>> LogBuffer<T> {
     }
 }
 
-impl<T: AsMut<[u8]>> core::fmt::Write for LogBuffer<T> {
+impl<T: AsRef<[u8]> + AsMut<[u8]>> core::fmt::Write for LogBuffer<T> {
     /// Append `s` to the ring buffer.
     ///
     /// This function takes O(n) time where n is length of `s`.
