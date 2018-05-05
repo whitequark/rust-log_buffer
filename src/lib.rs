@@ -41,6 +41,7 @@
 
 #![no_std]
 #![cfg_attr(feature = "const_fn", feature(const_fn))]
+#![feature(slice_rotate)]
 
 /// A ring buffer that stores UTF-8 text.
 ///
