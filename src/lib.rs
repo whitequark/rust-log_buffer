@@ -87,41 +87,8 @@ impl<T: AsMut<[u8]>> LogBuffer<T> {
     }
 
     fn rotate(&mut self) {
-        // We're rearranging the buffer such that the last written byte is at the last possible
-        // index; then we skip all the junk at the start, and only valid UTF-8 should remain.
-        let rotate_by = self.position;
+        self.buffer.as_mut().rotate_left(self.position);
         self.position = 0;
-
-        // The Juggling algorithm
-        fn gcd(mut a: usize, mut b: usize) -> usize {
-            if a < b { core::mem::swap(&mut a, &mut b) }
-
-            while b != 0 {
-                let r = a % b;
-                a = b;
-                b = r;
-            }
-            a
-        }
-
-        let buffer = self.buffer.as_mut();
-        for i in 0..gcd(buffer.len(), rotate_by) {
-          // move i-th values of blocks
-          let temp = buffer[i];
-          let mut j = i;
-          loop {
-            let mut k = j + rotate_by;
-            if k >= buffer.len() {
-                k -= buffer.len()
-            }
-            if k == i {
-                break
-            }
-            buffer[j] = buffer[k];
-            j = k;
-          }
-          buffer[j] = temp
-        }
     }
 
     /// Extracts the contents of the ring buffer as a string slice, excluding any
