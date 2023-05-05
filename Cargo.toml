@@ -8,6 +8,3 @@ repository = "https://github.com/whitequark/rust-log_buffer"
 homepage = "https://github.com/whitequark/rust-log_buffer"
 documentation = "https://whitequark.github.io/rust-log_buffer/log_buffer"
 description = "A zero-allocation ring buffer for storing text logs"
-
-[features]
-const_fn = []
