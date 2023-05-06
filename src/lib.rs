@@ -40,7 +40,6 @@
 //! ```
 
 #![no_std]
-#![cfg_attr(feature = "const_fn", feature(const_fn))]
 
 /// A ring buffer that stores UTF-8 text.
 ///
@@ -67,7 +66,6 @@ impl<T: AsRef<[u8]> + AsMut<[u8]>> LogBuffer<T> {
     /// The buffer is *not* cleared after creation, and contains whatever is in `storage`.
     /// The `clear()` method should be called before use.
     /// However, this function can be used in a static initializer.
-    #[cfg(feature = "const_fn")]
     pub const fn uninitialized(storage: T) -> LogBuffer<T> {
         LogBuffer { buffer: storage, position: 0 }
     }
